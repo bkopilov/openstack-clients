@@ -7,6 +7,7 @@ manager = credentials.ClientManager(username="admin",
                                    tenant_name="admin"
                                    )
 keystone = manager.get_keystone_client()
+#print type(keystone.tenants.list())
 
 
 
@@ -14,14 +15,25 @@ nova = manager.get_nova_client()
 #print nova.images.list()
 
 glance = manager.get_glance_client()
-for v in glance.images.list():
-    print v
 
+#i = glance .images.create()
+# image create returns a dictionary
+#print i
+# glance list =  returns a dictionary
+#for v in glance.images.list():
+#    print v['id']
 
 cinder = manager.get_cinder_client()
-cinder.volumes.create(1)
-print cinder.volumes.list()
+c = cinder.volumes.create("1")
+# cinder create returns an object
+# print c
+
+# cinder list = return an object
+#for v in cinder.volumes.list():
+#    print v.id
 
 
 neutron = manager.get_neutron_client()
-print neutron.list_networks()
+# neutron list returns a dictionary
+n = neutron.list_networks()
+print n

@@ -1,5 +1,24 @@
 import credentials
 import waiters
+import ceph_rbd
+
+
+# name of pools to connect
+ceph_pools = ["yrabl-cinder", "yrabl-glance", "yrabl-nova"]
+# keyring file
+keyring_key = dict(keyring="ceph.client.admin.keyring")
+
+# connect to cluster and initialize ioctx to pools
+cluster = ceph_rbd.RadosClient(conf_file="ceph.conf",
+                               keyring_key=keyring_key,
+                               ceph_pool_names=ceph_pools)
+
+cinder_pool = cluster.get_ioctx("yrabl-cinder")
+glance_pool = cluster.get_ioctx("yrabl-glance")
+nova_pool = cluster.get_ioctx("yrabl-nova")
+
+# get pool info
+print cinder_pool.get_stats()
 
 manager = credentials.ClientManager(username="admin",
                                    password="redhat",
@@ -67,21 +86,3 @@ waiters.Waiter.wait_for_resource_status(function=nova.servers.list,
                                         message="create instance",
                                         status="ACTIVE")
 
-
-
-
-#d = c.__dict__
-#for key in d.items():
-#    print key
-# cinder create returns an object
-# print c
-
-# cinder list = return an object
-#for v in cinder.volumes.list():
-#    print v.id
-
-
-#neutron = manager.get_neutron_client()
-# neutron list returns a dictionary
-#n = neutron.list_networks()
-#print n

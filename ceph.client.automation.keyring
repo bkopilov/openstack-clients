@@ -1,0 +1,4 @@
+[client.automation]
+	key = AQAID89Wv58TNBAAbggbrS3fDuiS0K4XBi2bAQ==
+	caps mon = "allow r"
+	caps osd = "allow class-read object_prefix rbd_children, allow rwx pool=automation-cinder, allow rwx pool=automation-nova, allow rwx pool=automation-glance"

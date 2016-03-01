@@ -4,3 +4,4 @@ python-novaclient
 python-cinderclient
 python-swiftclient
 python-neutronclient
+python-cephlibs

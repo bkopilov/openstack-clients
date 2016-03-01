@@ -16,6 +16,7 @@ class ClientManager(object):
                       'auth_url': auth_url,
                       'tenant_name': tenant_name
                       }
+        self._get_nova_creds()
 
     def _get_nova_creds(self):
         self.nova_creds = {"username": self.creds['username'],
@@ -85,7 +86,7 @@ class ClientManager(object):
         nova_client.availability_zones
         nova_client.server_groups
         """
-        self._get_nova_creds()
+
         nova_client = nova.Client("2", **self.nova_creds)
         return nova_client
 

@@ -13,12 +13,15 @@ cluster = ceph_rbd.RadosClient(conf_file="ceph.conf",
                                keyring_key=keyring_key,
                                ceph_pool_names=ceph_pools)
 
+rbd_client = cluster.get_rbd()
 cinder_pool = cluster.get_ioctx("yrabl-cinder")
 glance_pool = cluster.get_ioctx("yrabl-glance")
 nova_pool = cluster.get_ioctx("yrabl-nova")
 
+# example for RBD
+print rbd_client.list(glance_pool)
 # get pool info
-print cinder_pool.get_stats()
+#print cinder_pool.get_stats()
 
 manager = credentials.ClientManager(username="admin",
                                    password="redhat",

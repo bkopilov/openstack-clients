@@ -1,5 +1,5 @@
 import rados
-
+import rbd
 
 class RadosClient(object):
 
@@ -28,6 +28,11 @@ class RadosClient(object):
 
     def get_ioctx(self, pool_name):
         return self.pool[pool_name]
+
+    def get_rbd(self):
+        # return an object for RBD
+        return rbd.RBD()
+
 
 
 

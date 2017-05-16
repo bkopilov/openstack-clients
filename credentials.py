@@ -1,8 +1,12 @@
 import os
-import keystoneclient.v2_0.client as ksclient
+import keystoneclient.v2_0.client as ksclient_v2
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from keystoneclient.v3 import client as ksclient_v3
+from keystoneauth1.identity import v2
 import novaclient.client as nova
 import glanceclient.v2.client as glance
-import cinderclient.v2.client as cinder
+import cinderclient.v3.client as cinder_v3
 import neutronclient.v2_0.client as neutron
 
 
@@ -10,24 +14,31 @@ class ClientManager(object):
 
     CWD = os.getcwd()
 
-    def __init__(self, username, password, auth_url, tenant_name):
-        self.creds = {'username': username,
-                      'password': password,
-                      'auth_url': auth_url,
-                      'tenant_name': tenant_name
+    def __init__(self, username, password, auth_url, project_name,
+                 user_domain_id="default",
+                 project_domain_id="default"):
+        self.credentials = {'username': username,
+                            'password': password,
+                            'auth_url': auth_url,
+                            'project_name': project_name,
+                            'user_domain_id': user_domain_id,
+                            'project_domain_id': project_domain_id
                       }
-        self._get_nova_creds()
+        self.keystone_version = 2 if auth_url.find("/v2.0") != -1 else 3
 
-    def _get_nova_creds(self):
-        self.nova_creds = {"username": self.creds['username'],
-                           "api_key": self.creds['password'],
-                           "auth_url": self.creds['auth_url'],
-                           "project_id": self.creds['tenant_name']
-                           }
-
-    def _get_keystone_token(self):
-        keystone = ksclient.Client(**self.creds)
-        return keystone.auth_token
+    def _get_session_for_service(self):
+        if self.keystone_version == 3:
+            auth = v3.Password(**self.credentials)
+            return session.Session(auth=auth)
+        elif self.keystone_version == 2:
+                auth = v2.Password(
+                    auth_url=self.credentials['auth_url'],
+                    username=self.credentials['username'],
+                    password=self.credentials['password'],
+                    tenant_name=self.credentials['project_name'])
+                return session.Session(auth=auth)
+        else:
+            raise RuntimeError("Not supported keystone version")
 
     def get_keystone_client(self):
         """
@@ -41,10 +52,12 @@ class ClientManager(object):
         keystone_client.tenants
         keystone_client.ec2
         """
-        token = self._get_keystone_token()
-        keystone_client = ksclient.Client(endpoint=self.creds['auth_url'],
-                                          token=token)
-        return keystone_client
+        if self.keystone_version == 3:
+            session = self._get_session_for_service()
+            return ksclient_v3.Client(session=session)
+        elif self.keystone_version == 2:
+            session = self._get_session_for_service()
+            return ksclient_v2.Client(session=session)
 
     def get_nova_client(self):
         """
@@ -86,8 +99,8 @@ class ClientManager(object):
         nova_client.availability_zones
         nova_client.server_groups
         """
-
-        nova_client = nova.Client("2", **self.nova_creds)
+        session = self._get_session_for_service()
+        nova_client = nova.Client("2.1", session=session)
         return nova_client
 
     def get_glance_client(self):
@@ -102,18 +115,8 @@ class ClientManager(object):
         glance_client.metadefs_tag
         glance_client.metadefs_namespace
         """
-        token = self._get_keystone_token()
-        services = self.get_keystone_client().services.list()
-        the_id = None
-        admin_url = None
-        for service in services:
-            if service.type == "image":
-                the_id = service.id
-        endpoints = self.get_keystone_client().endpoints.list()
-        for endpoint in endpoints:
-            if endpoint.service_id == the_id:
-                admin_url = endpoint.adminurl
-        glance_client = glance.Client(endpoint=admin_url, token=token)
+        session = self._get_session_for_service()
+        glance_client = glance.Client(session = session)
         return glance_client
 
     def get_cinder_client(self):
@@ -137,7 +140,8 @@ class ClientManager(object):
         cinder_client.pools
         cinder_client.capabilities
         """
-        cinder_client = cinder.Client(**self.nova_creds)
+        session =  self._get_session_for_service()
+        cinder_client = cinder_v3.Client(session = session)
         return cinder_client
 
     def get_neutron_client(self):

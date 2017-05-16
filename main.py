@@ -1,10 +1,10 @@
 import credentials
 import waiters
+
+"""
 import ceph_rbd
-
-
 # name of pools to connect
-ceph_pools = ["yrabl-cinder", "yrabl-glance", "yrabl-nova"]
+# ceph_pools = ["yrabl-cinder", "yrabl-glance", "yrabl-nova"]
 # keyring file
 keyring_key = dict(keyring="ceph.client.admin.keyring")
 
@@ -22,29 +22,43 @@ nova_pool = cluster.get_ioctx("yrabl-nova")
 print rbd_client.list(glance_pool)
 # get pool info
 #print cinder_pool.get_stats()
-
+"""
 manager = credentials.ClientManager(username="admin",
-                                   password="redhat",
-                                   auth_url="http://192.168.100.235:35357/v2.0",
-                                   tenant_name="admin"
-                                   )
+                                    password="qum5net",
+                                    auth_url="http://192.168.100.230:5000/v2.0",
+                                    project_name="admin")
 keystone = manager.get_keystone_client()
+#print keystone.users.list()
+#print keystone.roles.list()
+
+# nova
+nova = manager.get_nova_client()
+#print nova.servers.list()
+#print nova.flavors.list()
+#server = nova.servers.create(name="kuku",
+#                                image="7bb61244-60b5-40db-bdd1-b9aca4cccbab",
+#                                flavor="1",
+#                                nics=[{"net-id": "d9663346-2739-4063-9e99-898e7dc072e1"}])
+#waiters.Waiter.wait_for_resource_status(function=nova.servers.list,
+#                                        waiter_id=server.__dict__['id'],
+#                                        client=nova,
+#                                        message="create instance",
+#                                        status="ACTIVE")
 
 
-glance = manager.get_glance_client()
-the_image_id = glance.images.create(name="test",
-                                 visibility="public",
-                                 container_format="bare",
-                                 disk_format="qcow2")['id']
+#glance = manager.get_glance_client()
+#the_image_id = glance.images.create(name="test",
+#                                 visibility="public",
+#                                 container_format="bare",
+#                                 disk_format="qcow2")['id']
 
-glance.images.upload(image_id=the_image_id, image_data=str("DDDDDDDDD"))
-waiters.Waiter.wait_for_resource_status(function=glance.images.get,
-                                        waiter_id=the_image_id,
-                                        status='active',
-                                        image_id=the_image_id,
-                                        client=glance,
-                                        message="glance_upload",
-                                        )
+# glance.images.upload(image_id=the_image_id, image_data=str("DDDDDDDDD"))
+#waiters.Waiter.wait_for_resource_status(function=glance.images.list,
+#                                        waiter_id=the_image_id,
+#                                        status='active',
+#                                        client=glance,
+#                                        message="glance_upload",
+#                                        )
 
 
 cinder = manager.get_cinder_client()
@@ -54,6 +68,13 @@ waiters.Waiter.wait_for_resource_status(function=cinder.volumes.list,
                                         client=cinder,
                                         message="cinder_create",
                                         status="available")
+
+cinder.volumes.delete(volume=volume_id)
+waiters.Waiter.wait_for_resource_deletion(function=cinder.volumes.list,
+                                          waiter_id=volume_id,
+                                          client=cinder,
+                                          message="cinder_delete")
+
 """
 backup_id = cinder.backups.create(volume_id).__dict__['id']
 waiters.Waiter.wait_for_resource_status(function=cinder.backups.list,
@@ -62,12 +83,12 @@ waiters.Waiter.wait_for_resource_status(function=cinder.backups.list,
                                         message="cinder_backup_create",
                                         status="available")
 
-restore_id = cinder.restores.restore(backup_id=backup_id, volume_id=volume_id)
+restore_id = cinder.restores.restore(backup_id=backup_id, volume_id=volume_id).__dict__['volume_id']
 waiters.Waiter.wait_for_resource_status(function=cinder.volumes.list,
                                         waiter_id=restore_id,
                                         client=cinder,
                                         status="available")
-"""
+
 
 snapshot_id = cinder.volume_snapshots.create(volume_id).__dict__['id']
 waiters.Waiter.wait_for_resource_status(function=cinder.volume_snapshots.list,
@@ -77,15 +98,4 @@ waiters.Waiter.wait_for_resource_status(function=cinder.volume_snapshots.list,
                                         status="available")
 
 
-# nova
-nova = manager.get_nova_client()
-server_id = nova.servers.create(name="kuku",
-                                image="c1337089-016c-4513-961b-92d1ec3fd527",
-                                flavor="1",
-                                nics=[{"net-id": "e6316a57-be66-4e81-b73c-79f93ef2d71f"}]).__dict__['id']
-waiters.Waiter.wait_for_resource_status(function=nova.servers.list,
-                                        waiter_id=server_id,
-                                        client=nova,
-                                        message="create instance",
-                                        status="ACTIVE")
-
+"""

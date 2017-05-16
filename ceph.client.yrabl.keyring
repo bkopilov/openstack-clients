@@ -1,4 +1,0 @@
-[client.yrabl]
-	key = AQA6ANRWsMM1ABAAu5db9rWVerTbUEXFxYe4dA==
-	caps mon = "allow r"
-	caps osd = "allow class-read object_prefix rbd_children, allow rwx pool=yrabl-cinder, allow rwx pool=yrabl-nova, allow rwx pool=yrabl-glance"

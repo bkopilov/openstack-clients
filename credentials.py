@@ -22,8 +22,7 @@ class ClientManager(object):
                             'auth_url': auth_url,
                             'project_name': project_name,
                             'user_domain_id': user_domain_id,
-                            'project_domain_id': project_domain_id
-                      }
+                            'project_domain_id': project_domain_id}
         self.keystone_version = 2 if auth_url.find("/v2.0") != -1 else 3
 
     def _get_session_for_service(self):
@@ -116,7 +115,7 @@ class ClientManager(object):
         glance_client.metadefs_namespace
         """
         session = self._get_session_for_service()
-        glance_client = glance.Client(session = session)
+        glance_client = glance.Client(session=session)
         return glance_client
 
     def get_cinder_client(self):
@@ -140,19 +139,14 @@ class ClientManager(object):
         cinder_client.pools
         cinder_client.capabilities
         """
-        session =  self._get_session_for_service()
-        cinder_client = cinder_v3.Client(session = session)
+
+        session = self._get_session_for_service()
+        cinder_client = cinder_v3.Client(session=session)
         return cinder_client
 
     def get_neutron_client(self):
-        """
-        """
-        neutron_client = neutron.Client(**self.creds)
+        session = self._get_session_for_service()
+        neutron_client = neutron.Client(session=session)
         return neutron_client
-
-
-
-
-
 
 
